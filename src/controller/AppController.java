@@ -1,48 +1,55 @@
 package controller;
 
+import service.ZakatService;
+import util.ConsoleHelper;
+import ui.*;
+import data.FoodData;
+
 public class AppController {
+
     private final ZakatService zakatService = new ZakatService();
     private final ConsoleHelper consoleHelper = new ConsoleHelper();
-
     private final MainScreen mainScreen = new MainScreen();
     private final InputScreen inputScreen = new InputScreen();
     private final MenuScreen menuScreen = new MenuScreen();
     private final ResultScreen resultScreen = new ResultScreen();
 
     public void run() {
-         // **Welcome Screen**
+        showWelcomeScreen();
+        boolean shouldContinue;
+        do {
+            processZakatCycle();
+            System.out.println();
+            System.out.print("Do you want to try again? (1: Yes / 2: No): ");
+            shouldContinue = (consoleHelper.readIntInRange(1, 2) == 1);
+        } while (shouldContinue);
+    }
+
+    private void showWelcomeScreen() {
+        // ** welcome screen **
         consoleHelper.clear();
         mainScreen.showGreeting();
-        consoleHelper.pause();//?
+        consoleHelper.pause();
+    }
 
-
-         boolean shouldContinue;
-        do {
-        // **Read number of family members**
+    private void processZakatCycle() {
+        // ** Read number of family members **
         consoleHelper.clear();
         inputScreen.show();
-        int familyMembers = consoleHelper.readNumber();
+        int familyMembers = consoleHelper.readInt();
 
-        // **Show food category menu**
+        // ** show food category menu **
         consoleHelper.clear();
         menuScreen.show();
-        int choice = consoleHelper.readNumberInRange(1, zakatService.getFoodList().size());
+        int choice = consoleHelper.readIntInRange(1, FoodData.getList().size());
+        // ** Get kg per person chosen food **
+        double kgPerPerson = FoodData.getList().get(choice - 1).kiloPerSa3;
 
-        // **Get kg-per-sa3 for chosen food **
-        double kgPerSa3 = zakatService.getFoodList().get(choice - 1).getKgPerSa3();
-
-        // ** Calculate total zakat weight **
-        double totalKg = zakatService.calculateZakat(familyMembers, kgPerSa3);
+        // **Calculate total zakat weight**
+        double totalKg = zakatService.calculate(familyMembers, kgPerPerson);
 
         // ** Show result **
         consoleHelper.clear();
         resultScreen.show(totalKg);
-
-        // ** Try again? **
-
-       System.out.print("Do you want to try again? (1: Yes / 2: No): ");
-       shouldContinue = (consoleHelper.readNumberInRange(1, 2) == 1);
-
-        
-        }while(shouldContinue);
+    }
 }
